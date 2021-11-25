@@ -1,0 +1,24 @@
+{
+  "name": "duino-klutch-client-standalone",
+  "version": "1.0.0",
+  "description": "A standalone version of duino-k.herokuapp.com",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --debug",
+    "build": "electron-builder -wl --x64",
+    "build:win": "electron-builder --win --x64",
+    "build:linux": "electron-builder --linux --x64",
+    "icon-builder": "electron-icon-builder --input=assets/icon.png --output=assets --flatten",
+    "copy-client": "node scripts/copy-client.js"
+  },
+  "keywords": [],
+  "author": "Nihon Yamori",
+  "private": true,
+  "devDependencies": {
+    "electron": "^16.0.1",
+    "electron-builder": "~22.10.5",
+    "electron-icon-builder": "^2.0.1",
+    "fs-extra": "^10.0.0"
+  }
+}

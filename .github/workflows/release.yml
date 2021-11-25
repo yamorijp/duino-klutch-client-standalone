@@ -1,0 +1,88 @@
+name: release
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.vars.outputs.version }}
+
+    steps:
+    - name: Version number
+      id: vars
+      run: |
+        VERSION=$(echo ${{ github.ref_name }} | sed -e "s/^v//g")
+        echo "::set-output name=version::$VERSION"
+
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref_name }}
+        draft: true
+        prerelease: false
+
+  build_linux:
+    runs-on: ubuntu-latest
+    needs: release
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Use Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 12
+        cache: 'npm'
+
+    - run: npm install
+    - run: npm run build:linux
+
+    - name: Upload Release Asset (linux)
+      id: upload_release_asset_linux
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ./dist_electron/duino-klutch-client-standalone-${{ needs.release.outputs.version }}.AppImage
+        asset_name: duino-klutch-client-standalone-${{ needs.release.outputs.version }}.AppImage
+        asset_content_type: application/octet-stream
+
+  build_win:
+    runs-on: windows-latest
+    needs: release
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Use Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 12
+        cache: 'npm'
+
+    - run: npm install
+    - run: npm run build:win
+
+    - name: Upload Release Asset (win)
+      id: upload_release_asset_win
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ./dist_electron/duino-klutch-client-standalone-${{ needs.release.outputs.version }}-win.zip
+        asset_name: duino-klutch-client-standalone-${{ needs.release.outputs.version }}-win.zip
+        asset_content_type: application/octet-stream
